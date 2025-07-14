@@ -1,6 +1,13 @@
 const { google } = require('googleapis');
 const path = require('path');
-const credentials = require(path.join(__dirname, '../google-creds.json'));
+let credentials;
+
+if (process.env.GOOGLE_CREDENTIALS) {
+  credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+} else {
+  credentials = require('../google-creds.json'); // for local dev only
+}
+
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
