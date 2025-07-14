@@ -1,0 +1,33 @@
+const { google } = require('googleapis');
+const path = require('path');
+const credentials = require(path.join(__dirname, '../google-creds.json'));
+
+const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+
+const auth = new google.auth.GoogleAuth({
+  credentials,
+  scopes: SCOPES,
+});
+
+const sheets = google.sheets({ version: 'v4', auth });
+
+const SHEET_ID = '1L8wqNjI1FcoZB1k4dTNc0cYZjBPJeazXxFuadMmlTxY';
+const SHEET_NAME = 'Defects';
+
+
+
+async function appendDefectRow(rowData) {
+
+    console.log("Appending to Google Sheet:", rowData);
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: SHEET_ID,
+    range: `${SHEET_NAME}!A1`,
+    valueInputOption: 'RAW',
+    insertDataOption: 'INSERT_ROWS',
+    resource: {
+      values: [rowData],
+    },
+  });
+}
+
+module.exports = { appendDefectRow };

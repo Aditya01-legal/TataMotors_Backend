@@ -61,13 +61,10 @@ async function initializeWorkbook() {
   return workbook;
 }
 
-
+const { appendDefectRow } = require('../services/googleSheetsService');
 // Add a defect
 exports.addDefect = async (req, res) => {
   try {
-    const workbook = await initializeWorkbook();
-    const sheet = workbook.getWorksheet('Defects');
-
     const {
       vehicleSystem,
       vehicleSystemOther,
@@ -83,9 +80,8 @@ exports.addDefect = async (req, res) => {
       image
     } = req.body;
 
-    const id = sheet.rowCount; // ID = row count (header is row 1)
-    sheet.addRow([
-      id,
+    const row = [
+      new Date().toISOString(), // Timestamp
       vehicleSystem,
       vehicleSystem === 'Others' ? vehicleSystemOther : '',
       severity,
@@ -98,13 +94,13 @@ exports.addDefect = async (req, res) => {
       resolutionDate,
       description,
       image
-    ]);
+    ];
 
-    await workbook.xlsx.writeFile(filePath);
-    res.status(201).json({ message: 'Defect logged successfully!' });
-  } catch (error) {
-    console.error('Add Defect Error:', error);
-    res.status(500).json({ error: 'Failed to log defect' });
+    await appendDefectRow(row);
+    res.status(201).json({ message: 'Defect submitted to Google Sheet!' });
+  } catch (err) {
+    console.error("Google Sheets Error:", err);
+    res.status(500).json({ error: "Failed to submit defect" });
   }
 };
 
