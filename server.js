@@ -6,7 +6,11 @@ const app = express();
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ limit: "20mb", extended: true }));
 
-app.use(cors());
+app.use(cors({
+  origin: "https://tata-motors-frontend.vercel.app",  // your frontend domain
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
 const defectRoutes = require('./routes/defectRoutes');
 app.use('/api/defects', defectRoutes); // ✅ THIS SHOULD BE RELATIVE
