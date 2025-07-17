@@ -4,7 +4,7 @@ const { addDefect, getDefects } = require('../controllers/defectController');
 
 // ✅ Correctly named paths
 router.post('/add', addDefect);
-router.get('/', getDefects);
+//router.get('/', getDefects);
 
 module.exports = router;
 
