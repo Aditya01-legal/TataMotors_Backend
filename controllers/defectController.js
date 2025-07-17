@@ -1,154 +1,47 @@
-const ExcelJS = require('exceljs');
-const path = require('path');
-const fs = require('fs');
+const { appendDefectRow } = require("../services/googleSheetsService");
 
-const filePath = path.join(__dirname, '../data/defects.xlsx');
-
-// Ensure file and sheet exist
-async function initializeWorkbook() {
-  const workbook = new ExcelJS.Workbook();
-
-  if (fs.existsSync(filePath)) {
-    await workbook.xlsx.readFile(filePath);
-  } else {
-    const sheet = workbook.addWorksheet('Defects');
-    sheet.addRow([
-      'ID',
-      'Vehicle System',
-      'Other Vehicle System',
-      'Severity',
-      'Status',
-      'Vehicle Model',
-      'Other Vehicle Model',
-      'Assigned To',
-      'Reported By',
-      'Reported On',
-      'Resolution Date',
-      'Defect Description',
-      'Image (Base64)'
-    ]);
-    await workbook.xlsx.writeFile(filePath);
-    return workbook;
-  }
-
-  const sheet = workbook.getWorksheet('Defects');
-  const firstRow = sheet.getRow(1);
-  const header = firstRow.values.slice(1); // Drop Excel internal index
-
-  // ✅ Check if header is missing or incomplete
-  if (!header.includes('Image (Base64)')) {
-    sheet.insertRow(
-      1,
-      [
-        'ID',
-        'Vehicle System',
-        'Other Vehicle System',
-        'Severity',
-        'Status',
-        'Vehicle Model',
-        'Other Vehicle Model',
-        'Assigned To',
-        'Reported By',
-        'Reported On',
-        'Resolution Date',
-        'Defect Description',
-        'Image (Base64)'
-      ]
-    );
-    await workbook.xlsx.writeFile(filePath);
-  }
-
-  return workbook;
-}
-
-const { appendDefectRow } = require('../services/googleSheetsService');
 // Add a defect
 exports.addDefect = async (req, res) => {
   try {
     const {
-      vehicleSystem,
-      vehicleSystemOther,
-      severity,
+      date,
+      issueReportedArea,
+      issueDescription,
+      partDescription,
+      partNumber,
+      supplierName,
+      actionInitiated,
+      rootCause,
+      pca,
       status,
-      vehicleModel,
-      vehicleModelOther,
-      assignedTo,
-      reportedBy,
-      reportedOn,
-      resolutionDate,
-      description,
-      image
+      responsibility,
+      issueAttendedBy,
     } = req.body;
 
     const row = [
-      new Date().toISOString(), // Timestamp
-      vehicleSystem,
-      vehicleSystem === 'Others' ? vehicleSystemOther : '',
-      severity,
+      new Date().toISOString(), // Auto ID (timestamp)
+      date,
+      issueReportedArea,
+      issueDescription,
+      partDescription,
+      partNumber,
+      supplierName,
+      actionInitiated,
+      rootCause,
+      pca,
       status,
-      vehicleModel,
-      vehicleModel === 'Other' ? vehicleModelOther : '',
-      assignedTo,
-      reportedBy,
-      reportedOn,
-      resolutionDate,
-      description,
-      image
+      responsibility,
+      issueAttendedBy,
     ];
 
+    console.log("Appending to Google Sheet:", row);
+
     await appendDefectRow(row);
-    res.status(201).json({ message: 'Defect submitted to Google Sheet!' });
-  } catch (err) {
-    console.error("Google Sheets Error:", err);
-    res.status(500).json({ error: "Failed to submit defect" });
-  }
-};
 
-// Get all defects
-exports.getDefects = async (req, res) => {
-  try {
-    const workbook = await initializeWorkbook();
-    const sheet = workbook.getWorksheet('Defects');
-
-    const rows = [];
-    sheet.eachRow((row, index) => {
-      if (index === 1) return; // skip header
-      const [
-        id,
-        vehicleSystem,
-        vehicleSystemOther,
-        severity,
-        status,
-        vehicleModel,
-        vehicleModelOther,
-        assignedTo,
-        reportedBy,
-        reportedOn,
-        resolutionDate,
-        description,
-        image
-      ] = row.values.slice(1); // slice off Excel row index
-
-      rows.push({
-        id,
-        vehicleSystem,
-        vehicleSystemOther,
-        severity,
-        status,
-        vehicleModel,
-        vehicleModelOther,
-        assignedTo,
-        reportedBy,
-        reportedOn,
-        resolutionDate,
-        description,
-        image
-      });
-    });
-
-    res.json(rows);
+    res.status(200).json({ message: "Defect added successfully" });
   } catch (error) {
-    console.error('Get Defects Error:', error);
-    res.status(500).json({ error: 'Failed to read defects' });
+    console.error("Google Sheets Error:", error);
+    res.status(500).json({ error: "Failed to add defect" });
   }
 };
+
