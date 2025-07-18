@@ -3,7 +3,9 @@ const { google } = require('googleapis');
 const path = require('path');
 const fs = require('fs');
 
-const creds = require('../google-creds.json');
+
+const { appendDefectRow } = require('../services/googleSheetsService');
+
 const spreadsheetId = '1L8wqNjI1FcoZB1k4dTNc0cYZjBPJeazXxFuadMmlTxY';
 
 const auth = new google.auth.GoogleAuth({
