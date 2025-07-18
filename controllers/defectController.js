@@ -1,32 +1,5 @@
-// defectController.js (Backend)
-const { google } = require('googleapis');
-const path = require('path');
-const fs = require('fs');
-
-
+// backend/controllers/defectController.js
 const { appendDefectRow } = require('../services/googleSheetsService');
-
-const spreadsheetId = '1L8wqNjI1FcoZB1k4dTNc0cYZjBPJeazXxFuadMmlTxY';
-
-const auth = new google.auth.GoogleAuth({
-  credentials: creds,
-  scopes: ['https://www.googleapis.com/auth/spreadsheets']
-});
-
-// const appendDefectRow = async (row) => {
-//   const client = await auth.getClient();
-//   const sheets = google.sheets({ version: 'v4', auth: client });
-
-//   await sheets.spreadsheets.values.append({
-//     spreadsheetId,
-//     range: 'Defects!A1',
-//     valueInputOption: 'RAW',
-//     insertDataOption: 'INSERT_ROWS',
-//     requestBody: {
-//       values: [row]
-//     }
-//   });
-// };
 
 exports.addDefect = async (req, res) => {
   try {
@@ -42,26 +15,26 @@ exports.addDefect = async (req, res) => {
       pca,
       pdc,
       responsibility,
-      issueReportedBy
+      issueReportedBy,
     } = req.body;
 
     const timestamp = new Date().toISOString();
 
     const row = [
-      '', // ID (auto via Google Sheets)
-      timestamp, // Timestamp
+      '',                // ID (auto by Google Sheets formula)
+      timestamp,         // Timestamp
       issueArea,
       issueDescription,
       partDescription,
       partNumber,
       supplierName,
       vendorCode,
-      ica,
+      ica,               // Now labeled as ICA
       rootCause,
       pca,
-      pdc,
-      responsibility,
-      issueReportedBy
+      pdc,               // PDC after PCA
+      responsibility,    // Now a textarea
+      issueReportedBy    // Changed from "Issue Attended By"
     ];
 
     await appendDefectRow(row);
@@ -72,4 +45,5 @@ exports.addDefect = async (req, res) => {
     res.status(500).json({ message: 'Failed to add defect to Google Sheets.' });
   }
 };
+
 
