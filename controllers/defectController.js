@@ -1,47 +1,73 @@
-const { appendDefectRow } = require("../services/googleSheetsService");
+// defectController.js (Backend)
+const { google } = require('googleapis');
+const path = require('path');
+const fs = require('fs');
 
-// Add a defect
+const creds = require('../google-creds.json');
+const spreadsheetId = '1L8wqNjI1FcoZB1k4dTNc0cYZjBPJeazXxFuadMmlTxY';
+
+const auth = new google.auth.GoogleAuth({
+  credentials: creds,
+  scopes: ['https://www.googleapis.com/auth/spreadsheets']
+});
+
+const appendDefectRow = async (row) => {
+  const client = await auth.getClient();
+  const sheets = google.sheets({ version: 'v4', auth: client });
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId,
+    range: 'Defects!A1',
+    valueInputOption: 'RAW',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: {
+      values: [row]
+    }
+  });
+};
+
 exports.addDefect = async (req, res) => {
   try {
     const {
-      date,
-      issueReportedArea,
+      issueArea,
       issueDescription,
       partDescription,
       partNumber,
       supplierName,
-      actionInitiated,
+      vendorCode,
+      ica,
       rootCause,
       pca,
-      status,
+      pdc,
       responsibility,
-      issueAttendedBy,
+      issueReportedBy
     } = req.body;
 
+    const timestamp = new Date().toISOString();
+
     const row = [
-      new Date().toISOString(), // Auto ID (timestamp)
-      date,
-      issueReportedArea,
+      '', // ID (auto via Google Sheets)
+      timestamp, // Timestamp
+      issueArea,
       issueDescription,
       partDescription,
       partNumber,
       supplierName,
-      actionInitiated,
+      vendorCode,
+      ica,
       rootCause,
       pca,
-      status,
+      pdc,
       responsibility,
-      issueAttendedBy,
+      issueReportedBy
     ];
-
-    console.log("Appending to Google Sheet:", row);
 
     await appendDefectRow(row);
 
-    res.status(200).json({ message: "Defect added successfully" });
-  } catch (error) {
-    console.error("Google Sheets Error:", error);
-    res.status(500).json({ error: "Failed to add defect" });
+    res.status(200).json({ message: 'Defect added and logged to Google Sheets.' });
+  } catch (err) {
+    console.error('Google Sheets Error:', err);
+    res.status(500).json({ message: 'Failed to add defect to Google Sheets.' });
   }
 };
 
