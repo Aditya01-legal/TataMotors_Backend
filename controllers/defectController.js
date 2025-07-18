@@ -13,20 +13,20 @@ const auth = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/spreadsheets']
 });
 
-const appendDefectRow = async (row) => {
-  const client = await auth.getClient();
-  const sheets = google.sheets({ version: 'v4', auth: client });
+// const appendDefectRow = async (row) => {
+//   const client = await auth.getClient();
+//   const sheets = google.sheets({ version: 'v4', auth: client });
 
-  await sheets.spreadsheets.values.append({
-    spreadsheetId,
-    range: 'Defects!A1',
-    valueInputOption: 'RAW',
-    insertDataOption: 'INSERT_ROWS',
-    requestBody: {
-      values: [row]
-    }
-  });
-};
+//   await sheets.spreadsheets.values.append({
+//     spreadsheetId,
+//     range: 'Defects!A1',
+//     valueInputOption: 'RAW',
+//     insertDataOption: 'INSERT_ROWS',
+//     requestBody: {
+//       values: [row]
+//     }
+//   });
+// };
 
 exports.addDefect = async (req, res) => {
   try {
